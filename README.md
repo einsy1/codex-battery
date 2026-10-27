@@ -2,6 +2,14 @@
 
 一个独立的 macOS 菜单栏额度查看工具，为当前本机 ChatGPT 登录的 Codex 账户显示五小时剩余额度。非 OpenAI 官方产品。
 
+## 界面预览
+
+截图中的额度和重置时间随账户状态变化。
+
+![额度主面板](docs/images/main-panel.png)
+
+![状态栏图标外观设置](docs/images/appearance.png)
+
 ## 使用
 
 将 `Codex Battery.app` 放入“应用程序”后启动。启动后点击右上角额度图标打开面板；再次点击或点击外部关闭。菜单栏百分比代表 Codex 五小时额度，和电脑电量无关。
