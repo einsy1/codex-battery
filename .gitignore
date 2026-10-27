@@ -6,6 +6,6 @@ build/
 DerivedData/
 *.xcuserstate
 xcuserdata/
-Preview.png
-Verification.json
-Appearance.png
+/Preview.png
+/Verification.json
+/Appearance.png
