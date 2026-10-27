@@ -106,7 +106,7 @@ struct QuotaPanel: View {
                     }
                     .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.85), value: store.fiveHour?.remaining)
                     .padding(.top, 8)
-                    Text(store.unavailable && !store.stale ? "当前有额度限制" : store.stale && store.response != nil ? "上次读取的额度" : "留一点余量，给下一个灵感。")
+                    Text(store.unavailable && !store.stale ? "当前有额度限制" : store.stale && store.response != nil ? "上次读取的额度" : "赶紧蹬！不蹬完就亏了！！")
                         .font(.system(size: 11)).foregroundStyle(.tertiary).padding(.top, 1)
                     Divider().opacity(0.5).padding(.top, 21).padding(.horizontal, 20)
                     TimelineView(.periodic(from: .now, by: 30)) { context in
@@ -152,7 +152,7 @@ struct QuotaPanel: View {
                 .background(.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 2) {
                 Text("Codex Battery").font(.system(size: 14, weight: .semibold))
-                Text("灵感，随时就绪").font(.system(size: 10)).foregroundStyle(.tertiary)
+                Text("赶紧蹬！不蹬完就亏了！！").font(.system(size: 10)).foregroundStyle(.tertiary)
             }
             Spacer()
             if let plan = store.response?.bucket?.planType {
@@ -258,7 +258,7 @@ struct QuotaPanel: View {
                 Spacer(minLength: 0)
                 VStack(alignment: .leading, spacing: 5) {
                     Text("每 3 分钟自动更新 · 仅查询额度")
-                    Text("Codex Battery 1.1 · 独立应用")
+                    Text("Codex Battery 1.1.1 · 独立应用")
                 }.font(.system(size: 10)).foregroundStyle(.tertiary)
                 Divider()
                 HStack {

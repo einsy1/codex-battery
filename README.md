@@ -1,4 +1,4 @@
-# Codex Battery 1.1
+# Codex Battery 1.1.1
 
 一个独立的 macOS 菜单栏额度查看工具，为当前本机 ChatGPT 登录的 Codex 账户显示五小时剩余额度。非 OpenAI 官方产品。
 
@@ -76,3 +76,7 @@ AppKit 菜单栏和系统 Popover，SwiftUI 布局；系统字体、SF Symbols�
 修改源码后运行测试和构建，在 Mac 上确认界面，再将新版 App 打包发布。GitHub 网页改源码不会自动更新已安装的 App。GitHub Actions 自动构建、Release 发布、Developer ID 签名与公证、应用内自动更新尚未配置，需要后续单独实现。
 
 构建脚本优先使用 `/Applications/Xcode.app`；不更改系统 `xcode-select`。Xcode 放在外置盘时，可以通过 `DEVELOPER_DIR` 指定其 `Contents/Developer` 目录后运行构建脚本。外置盘必须保持连接。
+
+## 1.1.1 更新
+
+标题下方和额度下方的日常提示统一为“赶紧蹬！不蹬完就亏了！！”。异常和额度限制提示保持原有表达。

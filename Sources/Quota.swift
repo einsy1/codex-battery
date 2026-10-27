@@ -84,7 +84,7 @@ struct QuotaClient {
             data.append(10)
             try input.fileHandleForWriting.write(contentsOf: data)
         }
-        try send(["id": 1, "method": "initialize", "params": ["clientInfo": ["name": "codex_battery", "title": "Codex Battery", "version": "1.1.0"]]])
+        try send(["id": 1, "method": "initialize", "params": ["clientInfo": ["name": "codex_battery", "title": "Codex Battery", "version": "1.1.1"]]])
         var buffer = Data()
         while Date() < deadline {
             let chunk = output.fileHandleForReading.availableData
