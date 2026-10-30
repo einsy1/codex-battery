@@ -29,7 +29,7 @@ import SwiftUI
             Task { @MainActor in self?.store.refresh() }
         }
         freshnessTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.updateStatus() }
+            Task { @MainActor in self?.store.updateFreshness() }
         }
         let firstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunched")
         UserDefaults.standard.set(true, forKey: "hasLaunched")
@@ -42,8 +42,7 @@ import SwiftUI
     }
     func updateStatus() {
         guard let button = status.button else { return }
-        let remaining = store.fiveHour?.remaining
-        let target = store.stale ? nil : remaining
+        let target = store.menuRemaining
         let shouldAnimate = target != displayedRemaining || renderedStyle != store.iconStyle || store.loading != wasLoading
         if shouldAnimate {
             animateIcon(to: target)
@@ -53,8 +52,8 @@ import SwiftUI
         wasLoading = store.loading
         renderedStyle = store.iconStyle
         button.font = .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
-        button.title = store.showPercentage ? (store.stale ? " —" : " \(Int((remaining ?? 0).rounded()))%") : ""
-        button.toolTip = store.stale ? "Codex Battery · 等待更新" : "Codex 五小时可用量 \(Int((remaining ?? 0).rounded()))%"
+        button.title = store.showPercentage ? (target.map { " \(store.cachedForMenu ? "~" : "")\(Int($0.rounded()))%" } ?? " —") : ""
+        button.toolTip = target == nil ? "Codex Battery · 等待更新" : "\(store.cachedForMenu ? "上次读取 · 正在重试" : "Codex 五小时可用量") \(Int((target ?? 0).rounded()))%"
         button.setAccessibilityLabel("\(store.iconStyle.title) · \(button.toolTip ?? "Codex Battery")")
     }
     private func animateIcon(to target: Double?) {

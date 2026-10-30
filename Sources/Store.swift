@@ -12,12 +12,24 @@ import ServiceManagement
     @Published var showPercentage = UserDefaults.standard.object(forKey: "showPercentage") as? Bool ?? true
     @Published var iconStyle = StatusIconStyle.restored()
     var onChange: (() -> Void)?
+    private let fetcher: @Sendable (String?) throws -> QuotaResponse
+    init(fetcher: @escaping @Sendable (String?) throws -> QuotaResponse = { try QuotaClient.fetch(custom: $0) }) {
+        self.fetcher = fetcher
+    }
     private var timer: Timer?
     private var failures = 0
     private var lastAttempt: Date?
+    private var allowCached = true
+    @Published var nextRetryAt: Date?
+    var freshness: QuotaFreshness {
+        RefreshPolicy.freshness(updatedAt: updatedAt, resetAt: fiveHour?.resetDate, hasError: error != nil, allowCached: allowCached)
+    }
+    var menuRemaining: Double? { freshness == .unavailable ? nil : fiveHour?.remaining }
+    var cachedForMenu: Bool { freshness == .cached }
+    func updateFreshness() { objectWillChange.send(); onChange?() }
     var fiveHour: QuotaWindow? { response?.fiveHour }
     var weekly: QuotaWindow? { response?.weekly }
-    var stale: Bool { error != nil || updatedAt.map { Date().timeIntervalSince($0) > 600 } ?? true }
+    var stale: Bool { freshness != .current }
     var unavailable: Bool { response?.ordinaryUsageAllowed == false || response?.bucket?.spendControlReached == true || weekly?.remaining == 0 || fiveHour?.remaining == 0 }
     var tint: Color {
         guard !stale else { return .secondary }
@@ -31,27 +43,33 @@ import ServiceManagement
     func refresh() {
         guard !loading else { return }
         timer?.invalidate()
-        loading = true; lastAttempt = Date(); onChange?()
+        loading = true; nextRetryAt = nil; lastAttempt = Date(); onChange?()
         let path = UserDefaults.standard.string(forKey: "codexPath")
+        let fetcher = self.fetcher
         Task { [self] in
             let result = await Task.detached(priority: .utility) { () -> Result<QuotaResponse, Error> in
-                Result { try QuotaClient.fetch(custom: path) }
+                Result { try fetcher(path) }
             }.value
             loading = false
+            var retryable = true
             switch result {
             case .success(let value):
-                response = value; updatedAt = Date(); error = nil; failures = 0
+                response = value; updatedAt = Date(); error = nil; failures = 0; allowCached = true
             case .failure(let failure):
                 error = failure.localizedDescription; failures += 1
+                retryable = (failure as? QuotaError)?.retryable ?? true
+                allowCached = retryable
             }
             onChange?()
-            var interval = min(900.0, 180.0 * pow(2, Double(min(failures, 3))))
+            var interval = error == nil ? RefreshPolicy.normalInterval : RefreshPolicy.retryInterval(failures: failures, retryable: retryable)
             if let reset = fiveHour?.resetDate, reset > Date() {
                 interval = min(interval, max(2, reset.timeIntervalSinceNow + 2))
             }
-            timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+            if error != nil { nextRetryAt = Date().addingTimeInterval(interval) }
+            timer = Timer(timeInterval: interval, repeats: false) { [weak self] _ in
                 Task { @MainActor in self?.refresh() }
             }
+            if let timer { RunLoop.main.add(timer, forMode: .common) }
         }
     }
     func setIconStyle(_ style: StatusIconStyle) {

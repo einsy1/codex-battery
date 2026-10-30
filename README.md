@@ -1,4 +1,4 @@
-# Codex Battery 1.1.1
+# Codex Battery 1.1.2
 
 一个独立的 macOS 菜单栏额度查看工具，为当前本机 ChatGPT 登录的 Codex 账户显示五小时剩余额度。非 OpenAI 官方产品。
 
@@ -34,7 +34,7 @@ AppKit 菜单栏和系统 Popover，SwiftUI 布局；系统字体、SF Symbols�
 
 优先选取 `rateLimitsByLimitId.codex`，兼容旧 `rateLimits`；按窗口长度 300 分钟、10080 分钟识别五小时和周额度，避免把其他窗口混进来。缺失数据保持未知。显示百分比为 `100 - usedPercent`，并限制在 0–100；无法换算成确定的剩余提问次数。周额度耗尽也会显示额度限制。
 
-读取超时为 25 秒；失败时保留上次结果并标记，菜单栏显示未知而非旧百分比。失败自动退避，最长 15 分钟。额度不写入持久缓存；只保存外观、显示偏好和手动选择的程序路径。平时不保留查询子进程。
+读取超时为 25 秒；使用非阻塞等待和受限的子进程退出等待，避免一直卡在“正在更新”。短暂失败后，菜单栏在 `~` 前缀下保留最多 10 分钟内且未跨重置时间的最近结果；无法确认的旧窗口、过期数据及登录错误仍显示未知。可重试失败依次在 10、30、60 秒后重试，之后最长每 3 分钟重试；登录/不兼容错误避免快速重试。面板区分连接、限流、登录等原因，并显示下次重试时间。额度不写入持久缓存；只保存外观、显示偏好和手动选择的程序路径。平时不保留查询子进程。
 
 官方协议文档：https://learn.chatgpt.com/docs/app-server
 
@@ -60,7 +60,7 @@ AppKit 菜单栏和系统 Popover，SwiftUI 布局；系统字体、SF Symbols�
 ./test.sh
 ```
 
-源码：`Sources/App.swift` 管理菜单栏和窗口；`Sources/Panel.swift` 管理界面及动画；`Sources/Quota.swift` 管理协议和解析；`Sources/Store.swift` 管理刷新和偏好；`Sources/StatusIcon.swift` 管理三种状态栏矢量图标和外观偏好标识。
+源码：`Sources/App.swift` 管理菜单栏和窗口；`Sources/Panel.swift` 管理界面及动画；`Sources/Quota.swift` 管理协议和解析；`Sources/Store.swift` 管理刷新和偏好；`Sources/StatusIcon.swift` 管理三种状态栏矢量图标和外观偏好标识；`Sources/RefreshPolicy.swift` 管理缓存有效期和失败重试策略。
 
 ## 验证范围
 
@@ -88,3 +88,7 @@ AppKit 菜单栏和系统 Popover，SwiftUI 布局；系统字体、SF Symbols�
 ## 1.1.1 更新
 
 标题下方和额度下方的日常提示统一为“赶紧蹬！不蹬完就亏了！！”。异常和额度限制提示保持原有表达。
+
+## 1.1.2 修复
+
+修复一次短暂查询失败就隐藏数字、随后长达 15 分钟才重试的问题。增加最近结果的明确标记和快速恢复，刷新计时器使用 common run-loop mode。增加刷新策略、分片协议响应、限流后恢复、无输出且拒绝正常退出的子进程超时，以及实际 Store 自动重试的回归检查。

@@ -126,7 +126,12 @@ struct QuotaPanel: View {
             if let error = store.error {
                 HStack(alignment: .top, spacing: 7) {
                     Image(systemName: "exclamationmark.circle").padding(.top, 1)
-                    Text(error).fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(error)
+                        if let retry = store.nextRetryAt {
+                            Text("下次重试：\(retry.formatted(date: .omitted, time: .standard))").foregroundStyle(.tertiary)
+                        }
+                    }.fixedSize(horizontal: false, vertical: true)
                 }.font(.system(size: 11)).foregroundStyle(.secondary).padding(.horizontal, 3)
             }
             }
@@ -258,7 +263,7 @@ struct QuotaPanel: View {
                 Spacer(minLength: 0)
                 VStack(alignment: .leading, spacing: 5) {
                     Text("每 3 分钟自动更新 · 仅查询额度")
-                    Text("Codex Battery 1.1.1 · 独立应用")
+                    Text("Codex Battery 1.1.2 · 独立应用")
                 }.font(.system(size: 10)).foregroundStyle(.tertiary)
                 Divider()
                 HStack {
